@@ -1,4 +1,5 @@
 import uvicorn
+import gunicorn
 from fastapi import FastAPI, encoders
 from Bankcredit import BankCredit
 import pickle
