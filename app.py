@@ -50,29 +50,20 @@ def graph(input_id : int):
     explaination = explainer.explain_instance(data_client.squeeze(axis=0), model.predict_proba, num_features=10)
 
     liste_n = explaination.as_list()
-    liste_n = liste_n
 
     features = []
     values = []
 
     for i, j in liste_n:
-        features.append(i)
+        for k in i.split():
+            if len(k) > 5:
+                features.append(k)
         values.append(j)
     exp = pd.DataFrame(values, index=features, columns=['valeur'])
+    exp.reset_index(inplace=True)
+    exp.rename(columns={'index': 'ticks'}, inplace=True)
 
-    exp['copie'] = exp.index
-    exp[['copie', 'temp']] = exp.copie.str.rsplit('<', n=1, expand=True)
-    try:
-        exp[['copie', 'temp']] = exp['copie'].str.rsplit('>', n=1, expand=True)
-    except:
-        pass
-    exp['ticks'] = exp['copie'] + " : " + round(exp['valeur'], 4).astype(str)
-    exp.drop(['temp', 'copie'], axis=1, inplace=True)
-
-    exp_2 = exp.sort_values('valeur', ascending=True, key=abs)[-10:]
-    exp_2.reset_index(inplace=True, drop=True)
-
-    json_item = encoders.jsonable_encoder(exp_2)
+    json_item = encoders.jsonable_encoder(exp)
     return responses.JSONResponse(content=json_item)
 
 
