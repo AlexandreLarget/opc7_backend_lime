@@ -4,8 +4,6 @@ from fastapi import FastAPI, encoders
 import pickle
 import pandas as pd
 from starlette import responses
-import lime
-import dill
 
 # création obj app:
 app = FastAPI()
@@ -14,14 +12,13 @@ app = FastAPI()
 model_pkl = open('data/model.pkl', 'rb')
 model = pickle.load(model_pkl)
 
-explainer_pkl = open('data/explainer_lime_2.pkl', 'rb')
-explainer = dill.load(explainer_pkl)
-
 def get_data(filename):
     df = pd.read_csv(filename, index_col=0)
     return df
 
 data = get_data("data/data_scaled_sample.csv")
+
+lime_df = get_data("data/lime_df.csv")
 
 
 @app.get('/')
@@ -44,26 +41,10 @@ def predict(input_id : int):
 @app.get('/graph/{input_id}')
 def graph(input_id : int):
 
-    data_client = data[data.SK_ID_CURR == input_id]
-    data_client = data_client.drop(['SK_ID_CURR', 'TARGET'], axis=1)
+    data = lime_df[lime_df.index == input_id]
+    data.reset_index(inplace=True, drop=True)
 
-    explaination = explainer.explain_instance(data_client.squeeze(axis=0), model.predict_proba, num_features=10)
-
-    liste_n = explaination.as_list()
-
-    features = []
-    values = []
-
-    for i, j in liste_n:
-        for k in i.split():
-            if len(k) > 5:
-                features.append(k)
-        values.append(j)
-    exp = pd.DataFrame(values, index=features, columns=['valeur'])
-    exp.reset_index(inplace=True)
-    exp.rename(columns={'index': 'ticks'}, inplace=True)
-
-    json_item = encoders.jsonable_encoder(exp)
+    json_item = encoders.jsonable_encoder(data)
     return responses.JSONResponse(content=json_item)
 
 
