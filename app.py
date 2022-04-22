@@ -41,8 +41,7 @@ def predict(input_id : int):
 @app.get('/graph/{input_id}')
 def graph(input_id : int):
 
-    data = lime_df[lime_df.index == input_id]
-    data.reset_index(inplace=True, drop=True)
+    data = lime_df[lime_df.ID == input_id]
 
     json_item = encoders.jsonable_encoder(data)
     return responses.JSONResponse(content=json_item)
