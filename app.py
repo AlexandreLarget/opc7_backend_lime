@@ -41,10 +41,12 @@ def predict(input_id : int):
 @app.get('/graph/{input_id}')
 def graph(input_id : int):
 
-    data = lime_df[lime_df.ID == input_id]
+    data = lime_df[lime_df['ID'] == input_id].drop('ID', axis=1)
+    data.reset_index(inplace=True, drop=True)
 
     json_item = encoders.jsonable_encoder(data)
     return responses.JSONResponse(content=json_item)
+
 
 
 @app.get('/stats/{input_id}')
